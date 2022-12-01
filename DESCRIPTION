@@ -1,0 +1,24 @@
+Package: sdc
+Type: Package
+Title: Swiss Data Cube
+Version: 0.0.1
+Date: 2022-10-24
+Authors@R: 
+    person("RS-eco", email = "RS-eco@posteo.de", role = c("cre", "aut"))
+Maintainer: RS-eco <rs-eco@posteo.de>
+Description: R package to access various data sources for Switzerland, 
+    i.e. elevation, climate and land-use data.
+Depends: R (>= 3.5.0)
+Imports: dplyr
+Suggests: raster, ggplot2, sf, sp, tidyr, knitr, rmarkdown, magrittr, scales, scico, edc, data.table,
+    ggthemes, ggpubr, zoo, lubridate, patchwork, caret, letsR, remotes, mecofun
+License: file LICENSE
+LazyData: TRUE
+LazyDataCompression: xz
+Encoding: UTF-8
+VignetteBuilder: knitr
+RoxygenNote: 7.2.1
+NeedsCompilation: no
+Author: RS-eco [cre, aut]
+URL: https://github.com/RS-eco/sdc
+BugReports: https://github.com/RS-eco/sdc/issues
