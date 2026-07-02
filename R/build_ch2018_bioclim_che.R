@@ -4,8 +4,8 @@
 #' ---
 
 rm(list=ls()); gc()
-library(raster); library(processNC); library(dplyr); 
-library(lubridate); library(dismo); library(tidyr)
+library(raster); library(dismo); library(processNC); 
+library(dplyr); library(lubridate); library(tidyr)
 
 # Please also make sure the raster and dismo package are installed
 

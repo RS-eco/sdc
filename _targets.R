@@ -3,7 +3,7 @@ library(targets)
 
 # Define targets options
 tar_option_set(
-  packages = c("dplyr", "sf", "terra", "stringr", "rdryad")
+  packages = c("dplyr", "sf", "terra", "stringr", "rdryad", "raster", "sp")
 )
 
 # Define save_package_data function
@@ -28,7 +28,7 @@ list(
   tar_target(corine_cha_che, build_corine_cha_che()),
   tar_target(corine_lc_che, build_corine_lc_che()),
   tar_target(glarus, build_glarus()),
-  tar_target(inat_che_1965_2021, build_inat_che_1965_2021()),
+  tar_target(inat_che_1965_2025, build_inat_che_1965_2021()),
   tar_target(srtm_csi_che_3arc, build_srtm_csi_che_3arc()),
   tar_target(srtm3_che_3arc, build_srtm3_che_3arc()),
   tar_target(srtm3_glarus_1arc, build_srtm3_glarus_1arc()),
