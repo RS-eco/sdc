@@ -63,18 +63,17 @@ build_inat_che_1965_2025 <- function(){
 
   # Merge lists
   inat_che_1965_2025 <- c(inat_che_1965_2015, list(inat_che_2016, inat_che_2017, inat_che_2018, inat_che_2019, inat_che_2020, 
-                                                   inat_che_2021, inat_che_2022, inat_che_2023, inat_che_2024, inat_che_2025))
+                                                   inat_che_2021, inat_che_2022, inat_che_2023, inat_che_2024, inat_che_2025)); rm()
   
   # Turn list into data.frame
   inat_che_1965_2025 <- bind_rows(inat_che_1965_2025)
   
   # Plot data
-  plot(inat_che_1965_2025$longitude, inat_che_1965_2025$latitude, col="red")
-  sp::plot(as(che, "Spatial"), add=T)
-  
-  hist(lubridate::year(inat_che_1965_2025$datetime))
+  #plot(inat_che_1965_2025$longitude, inat_che_1965_2025$latitude, col="red")
+  #sp::plot(as(che, "Spatial"), add=T)
+  #hist(lubridate::year(inat_che_1965_2025$datetime))
   
   # Save data to file
-  #save(inat_che_1965_2025, file="data/inat_che_1965_2025.rda", compress="xz")
+  #save(inat_che_1965_2025, file="data/inat_che_1965_2025.rda", compress=FALSE)
   inat_che_1965_2025
 }
