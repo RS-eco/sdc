@@ -37,26 +37,12 @@ che <- load_file("data/che.rda")
 # ------------------------------------------------------------------------------
 
 load_dataset <- function(path, manifest, mtime) {
-  
-  ext <- tools::file_ext(path)
-  
-  dat <- switch(
-    ext,
-    rda = load_file(path),
-    rds = readRDS(path),
-    csv = read.csv(path),
-    parquet = arrow::read_parquet(path),
-    stop("Unsupported file type")
-  )
-  
+  dat <- load_file(path)
   dat <- standardiseColumns(dat)
-  
   ds_type <- manifest$dataset_type[match(path, manifest$file)]
-  
   if (ds_type == "sf" && !inherits(dat, "sf")) {
     dat <- sf::st_as_sf(dat, coords = c("x", "y"), crs = 4326)
   }
-  
   dat
 }
 
@@ -68,7 +54,7 @@ cached_load_dataset <- memoise(load_dataset)
 # ------------------------------------------------------------------------------
 
 ui <- page_sidebar(
-  title = "Chiquitania Data Cube",
+  title = "Swiss Data Cube",
   
   theme = bs_theme(
     version = 5,
