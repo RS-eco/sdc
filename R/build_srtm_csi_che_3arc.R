@@ -5,30 +5,29 @@
 ## Process low resolution (90m) data
 
 # SRTM 90m Data was downloaded from: http://srtm.csi.cgiar.org/srtmdata/
-build_srtm_csi_che_3arc <- function(filedir="extdata/SRTM"){
+build_srtm_csi_che_3arc <- function(filedir){
   # Load packages
-  library(raster); library(dplyr)
-  library(sp)
+  library(terra); library(dplyr)
   
   # List files
   files <- list.files(filedir, pattern="cut", full.names=T)
   
   # Load files
-  alt_eur_sub <- raster::stack(files[1])
+  alt_eur_sub <- terra::rast(files)
   
   # Define CRS (WGS84)
-  raster::crs(alt_eur_sub) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+  terra::crs(alt_eur_sub) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
   
   # Load Switzerland outline
   load("data/che.rda")
   
   # Crop data by extent of Switzerland
-  alt_che <- raster::mask(raster::crop(alt_eur_sub, che), che)
+  alt_che <- terra::mask(terra::crop(alt_eur_sub, che), che); rm(alt_eur_sub); gc()
   raster::plot(alt_che)
   plot(che, add=T)
   
   # Turn into data.frame
-  srtm_csi_che_3arc <- as.data.frame(rasterToPoints(alt_che))
+  srtm_csi_che_3arc <- as.data.frame(alt_che, xy=T)
   colnames(srtm_csi_che_3arc) <- c("x", "y", "altitude")
   srtm3_csi_che_3arc$altitude <- round(srtm3_che_3arc$altitude, digits=0)
   

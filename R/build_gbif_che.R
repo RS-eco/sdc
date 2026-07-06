@@ -2,7 +2,7 @@
 
 build_gbif_che <- function(filedir){
   # Load libraries
-  library(dplyr); library(raster); library(ggplot2)
+  library(dplyr); library(terra); library(ggplot2)
   
   # Get GADM boundaries
   load("data/che.rda")

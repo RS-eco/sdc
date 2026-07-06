@@ -8,29 +8,28 @@ build_srtm3_glarus_1arc <- function(filedir){
   # SRTM 90m Data was downloaded from: http://srtm.csi.cgiar.org/srtmdata/
   
   # Load packages
-  library(raster); library(dplyr)
-  library(sp)
+  library(terra); library(dplyr); library(sf)
   
   # List files
   filedir <- "extdata/SRTM"
   files <- list.files(filedir, pattern="cut", full.names=T)
   
   # Load files
-  alt_eur_sub <- raster::stack(files[1])
+  alt_eur_sub <- terra::rast(files)
   
   # Define CRS (WGS84)
-  raster::crs(alt_eur_sub) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
+  terra::crs(alt_eur_sub) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"
   
   # Load Switzerland outline
-  che <- raster::getData('GADM', country='CHE', level=0)
+  load("data/che.rda")
   
   # Crop data by extent of Switzerland
-  alt_che <- raster::mask(raster::crop(alt_eur_sub, che), che)
+  alt_che <- terra::mask(terra::crop(alt_eur_sub, che), che)
   raster::plot(alt_che)
-  plot(che, add=T)
+  plot(st_geometry(che), add=T)
   
   # Turn into data.frame
-  srtm_csi_che_3arc <- as.data.frame(rasterToPoints(alt_che))
+  srtm_csi_che_3arc <- as.data.frame(alt_che, xy=T)
   colnames(srtm_csi_che_3arc) <- c("x", "y", "altitude")
   srtm3_csi_che_3arc$altitude <- round(srtm3_che_3arc$altitude, digits=0)
   
@@ -46,40 +45,39 @@ build_srtm3_glarus_1arc <- function(filedir){
   files <- list.files("extdata/SRTMGL1/", pattern="*.hgt", full.names=T)
   
   # Load SRTM files
-  library(raster)
-  alt_suisse <- lapply(files, raster::raster)
+  alt_suisse <- lapply(files, terra::rast)
+  alt_suisse <- sprc(alt_suisse)
   
   # Load Switzerland outline
   load("data/glarus.rda")
   
   # Crop data by extent of Switzerland
-  #srtm3_1arc_che <- lapply(alt_suisse, function(x) mask(crop(x, che), che)); gc()
+  srtm3_1arc_che <- terra::mask(terra::crop(alt_suisse, che), che); gc()
   
   # Merge data into one layer
-  #srtm3_1arc_che <- do.call(raster::merge, srtm3_1arc_che); gc()
-  #raster::plot(srtm3_1arc_che)
-  #plot(che, add=T)
+  srtm3_1arc_che <-terra::merge(srtm3_1arc_che); gc()
+  raster::plot(srtm3_1arc_che)
+  plot(st_geometry(che), add=T)
   
   # Turn into data.frame
-  #srtm3_1arc_che <- as.data.frame(rasterToPoints(srtm3_1arc_che)); gc()
-  #colnames(srtm3_1arc_che) <- c("x", "y", "altitude")
+  srtm3_1arc_che <- as.data.frame(srtm3_1arc_che, xy=T); gc()
+  colnames(srtm3_1arc_che) <- c("x", "y", "altitude")
   
   # Save to file
   #save(srtm3_che_1arc, file="inst/extdata/srtm3_che_1arc.rda", compress="xz")
   #rm(srtm3_1arc_che); gc()
   
   # Crop data by extent of Switzerland
-  alt_glarus <- lapply(alt_suisse, function(x) mask(crop(x, glarus), glarus))
-  alt_glarus <- do.call(raster::merge, alt_glarus); rm(alt_suisse); gc()
+  alt_glarus <- terra::mask(terra::crop(alt_suisse, glarus), glarus); gc()
+  alt_glarus <- terra::merge(alt_glarus); rm(alt_suisse); gc()
   
   plot(alt_glarus)
   plot(sf::st_geometry(glarus), add=T)
 
   # Turn into data.frame
-  srtm3_glarus_1arc <- as.data.frame(rasterToPoints(alt_glarus))
+  srtm3_glarus_1arc <- as.data.frame(alt_glarus, xy=T); gc()
   colnames(srtm3_glarus_1arc) <- c("x", "y", "altitude")
   srtm3_glarus_1arc$altitude <- round(srtm3_glarus_1arc$altitude, digits=0)
-  
   head(srtm3_glarus_1arc)
   
   # Save to file

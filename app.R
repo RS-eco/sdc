@@ -1,11 +1,13 @@
+# ------------------------------------------------------------------------------
+# Load packages
+# ------------------------------------------------------------------------------
+
 library(shiny)
 library(bslib)
+library(memoise)
 library(dplyr)
-library(tidyr)
 library(sf)
 library(ggplot2)
-library(arrow)
-library(memoise)
 
 # ------------------------------------------------------------------------------
 # Configuration

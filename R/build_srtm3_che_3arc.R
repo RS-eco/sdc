@@ -7,14 +7,14 @@ build_srtm3_che_3arc <- function(filedir){
   # SRTM 90m Data was downloaded from: http://srtm.csi.cgiar.org/srtmdata/
   
   # Load packages
-  library(terra); library(dplyr); library(raster)
+  library(terra); library(dplyr)
   
   # List files
   filedir <- "extdata/SRTM"
   files <- list.files(filedir, pattern="cut", full.names=T)
   
   # Load files
-  alt_eur_sub <- terra::rast(files[1])
+  alt_eur_sub <- terra::rast(files)
   
   # Define CRS (WGS84)
   terra::crs(alt_eur_sub) <- "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"

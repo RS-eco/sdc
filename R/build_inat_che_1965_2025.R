@@ -1,6 +1,4 @@
 build_inat_che_1965_2025 <- function(){
-  rm(list=ls()); gc()
-  
   # Load rinat package
   library(rinat)
   
@@ -15,7 +13,7 @@ build_inat_che_1965_2025 <- function(){
   bounds <- c(45.75,5.9,47.85,10.55)
   years <- c(1965:2015)
   inat_che_1965_2015 <- lapply(years, function(x){
-    dat <- try(get_inat_obs(bounds = bounds, year=x, maxresults=10000) %>%
+    dat <- try(rinat::get_inat_obs(bounds = bounds, year=x, maxresults=10000) %>%
                  dplyr::select(scientific_name, datetime, place_guess, longitude, latitude,
                                common_name, species_guess, iconic_taxon_name, taxon_id)); gc()
     Sys.sleep(3)
@@ -34,7 +32,7 @@ build_inat_che_1965_2025 <- function(){
   #' Create download data by month function
   inat_permonth <- function(x=1:12, year, bounds){
     dat <- lapply(1:12, function(x){
-      dat <- try(get_inat_obs(bounds = bounds, year = year, month = x, maxresults = 10000) %>%
+      dat <- try(rinat::get_inat_obs(bounds = bounds, year = year, month = x, maxresults = 10000) %>%
                    dplyr::select(scientific_name, datetime, place_guess, longitude, latitude,
                                  common_name, species_guess, iconic_taxon_name, taxon_id)); gc()
       Sys.sleep(3)
@@ -66,7 +64,7 @@ build_inat_che_1965_2025 <- function(){
                                                    inat_che_2021, inat_che_2022, inat_che_2023, inat_che_2024, inat_che_2025)); rm()
   
   # Turn list into data.frame
-  inat_che_1965_2025 <- bind_rows(inat_che_1965_2025)
+  inat_che_1965_2025 <- dplyr::bind_rows(inat_che_1965_2025)
   
   # Plot data
   #plot(inat_che_1965_2025$longitude, inat_che_1965_2025$latitude, col="red")
@@ -74,6 +72,6 @@ build_inat_che_1965_2025 <- function(){
   #hist(lubridate::year(inat_che_1965_2025$datetime))
   
   # Save data to file
-  #save(inat_che_1965_2025, file="data/inat_che_1965_2025.rda", compress=FALSE)
+  save(inat_che_1965_2025, file="data/inat_che_1965_2025.rda", compress="xz")
   inat_che_1965_2025
 }
