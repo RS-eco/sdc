@@ -2,17 +2,13 @@
 #install.packages('rsconnect')
 
 # Set the account info from secret variables (login to shinyapps.io to see SECRET)
-#rsconnect::setAccountInfo(name='RS-eco',
-#                          token=,
-#                          secret='<SECRET>')
+library(rsconnect)
+connectCloudUser()
 
 # Create a manifest file
-library(rsconnect)
-rsconnect::writeManifest()
+rsconnect::writeManifest("inst/app")
 
 # Deploy the app
-#rsconnect::deployApp(account="RS-eco", server = 'shinyapps.io',
-#                     appFiles = c("app.R", list.files("data", full.names=T), "R/standardiseColumns.R", "R/make_plot.R"), 
-#                     appName="sdc", appTitle="Swiss Data Cube")
-
-
+rsconnect::deployApp(appDir="inst/app/")
+#rsconnect::deployApp(appFiles=c("inst/app/app.R", list.files("data", full.names=T), "inst/extdata/manifest.csv", "R/standardiseColumns.R", "R/make_plot.R"))
+#=> Throws up error

@@ -7,7 +7,7 @@ manifest <- tibble::tibble(
   file = available_datasets,
   dataset_type = ifelse(available_datasets %in% c("data/diva_rails_che.rda", "data/diva_roads_che.rda", "data/diva_water_areas_che.rda", "data/diva_water_lines_che.rda"), 
                         "sf", "terra"),
-  filter_columns = c("gcm;rcp", "gcm;rcp", NULL, NULL,NULL,NULL,NULL,NULL,NULL),
+  filter_columns = c("gcm;rcm;rcp;time_frame", "gcm;ensemble;rcm;rs;rcp;timef_frame", NA, NA, NA, NA, NA, NA),
   label = sub("\\.rda$", "", sub(paste0("^", "data/"), "", file))
 )
 write.csv(manifest, "inst/extdata/manifest.csv")
