@@ -33,3 +33,6 @@
 
 # R Environment Variables
 .Renviron
+
+# GADM extdata files
+inst/extdata/gadm

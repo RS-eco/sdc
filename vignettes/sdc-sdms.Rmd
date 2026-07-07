@@ -19,7 +19,7 @@ knitr::opts_chunk$set(collapse = TRUE, warning=F, message=F, fig.width=8, fig.he
 rm(list=ls()); gc()
 
 # Load packages
-library(dplyr); library(tidyr)
+library(dplyr); library(tidyr); library(letsR)
 library(ggplot2); library(scico)
 
 # Load edc package

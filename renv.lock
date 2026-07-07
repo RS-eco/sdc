@@ -2671,12 +2671,15 @@
     },
     "ggpubr": {
       "Package": "ggpubr",
-      "Version": "0.6.3",
+      "Version": "1.0.0",
       "Source": "Repository",
       "Type": "Package",
       "Title": "'ggplot2' Based Publication Ready Plots",
+      "Date": "2026-07-06",
       "Authors@R": "c( person(\"Alboukadel\", \"Kassambara\", role = c(\"aut\", \"cre\"), email = \"alboukadel.kassambara@gmail.com\"), person(\"Laszlo\", \"Erdey\", role = \"ctb\", email = \"erdey.laszlo@econ.unideb.hu\", comment = \"Faculty of Economics and Business, University of Debrecen, Hungary\"))",
-      "Description": "The 'ggplot2' package is excellent and flexible for elegant data visualization in R. However the default generated plots requires some formatting before we can send them for publication. Furthermore, to customize a 'ggplot', the syntax is opaque and this raises the level of difficulty for researchers with no advanced R programming skills. 'ggpubr' provides some easy-to-use functions for creating and customizing 'ggplot2'- based publication ready plots.",
+      "Author": "Alboukadel Kassambara [aut, cre], Laszlo Erdey [ctb] (Faculty of Economics and Business, University of Debrecen, Hungary)",
+      "Maintainer": "Alboukadel Kassambara <alboukadel.kassambara@gmail.com>",
+      "Description": "The 'ggplot2' package is excellent and flexible for elegant data visualization in R. However the default generated plots require some formatting before we can send them for publication. Furthermore, to customize a 'ggplot', the syntax is opaque and this raises the level of difficulty for researchers with no advanced R programming skills. 'ggpubr' provides some easy-to-use functions for creating and customizing 'ggplot2'-based publication ready plots. This version includes modern R ecosystem compatibility updates and customizable p-value formatting presets (APA, AMA, NEJM, Lancet, GraphPad, and scientific notation) for publication workflows, plus robust sparse-subset handling in statistical annotation layers such as 'stat_compare_means()' and 'geom_pwc()', with informative per-group skip diagnostics for non-comparable subsets.",
       "License": "GPL (>= 2)",
       "LazyData": "TRUE",
       "Encoding": "UTF-8",
@@ -2690,17 +2693,17 @@
         "ggsci",
         "stats",
         "utils",
-        "tidyr (>= 1.3.0)",
+        "tidyr (>= 1.3.2)",
         "purrr",
-        "dplyr (>= 1.1.0)",
-        "cowplot (>= 1.1.1)",
+        "dplyr (>= 1.2.0)",
+        "cowplot (>= 1.2.0)",
         "ggsignif",
         "scales",
         "gridExtra",
         "glue",
         "polynom",
-        "rlang (>= 0.4.6)",
-        "rstatix (>= 0.7.2)",
+        "rlang (>= 1.1.7)",
+        "rstatix (>= 1.0.0)",
         "tibble",
         "magrittr"
       ],
@@ -2711,13 +2714,11 @@
         "gtable",
         "testthat"
       ],
-      "URL": "https://rpkgs.datanovia.com/ggpubr/",
+      "URL": "https://rpkgs.datanovia.com/ggpubr/, https://github.com/kassambara/ggpubr",
       "BugReports": "https://github.com/kassambara/ggpubr/issues",
       "RoxygenNote": "7.3.3",
-      "Collate": "'utilities_color.R' 'utilities_base.R' 'desc_statby.R' 'utilities.R' 'add_summary.R' 'annotate_figure.R' 'as_ggplot.R' 'as_npc.R' 'axis_scale.R' 'background_image.R' 'bgcolor.R' 'border.R' 'compare_means.R' 'create_aes.R' 'diff_express.R' 'facet.R' 'font.R' 'gene_citation.R' 'gene_expression.R' 'geom_bracket.R' 'geom_exec.R' 'utils-aes.R' 'utils_stat_test_label.R' 'geom_pwc.R' 'get_breaks.R' 'get_coord.R' 'get_legend.R' 'get_palette.R' 'ggadd.R' 'ggadjust_pvalue.R' 'ggarrange.R' 'ggballoonplot.R' 'ggpar.R' 'ggbarplot.R' 'ggboxplot.R' 'ggdensity.R' 'ggpie.R' 'ggdonutchart.R' 'stat_conf_ellipse.R' 'stat_chull.R' 'ggdotchart.R' 'ggdotplot.R' 'ggecdf.R' 'ggerrorplot.R' 'ggexport.R' 'gghistogram.R' 'ggline.R' 'ggmaplot.R' 'ggpaired.R' 'ggparagraph.R' 'ggpubr-package.R' 'ggpubr_args.R' 'ggpubr_options.R' 'ggqqplot.R' 'utilities_label.R' 'stat_cor.R' 'stat_stars.R' 'ggscatter.R' 'ggscatterhist.R' 'ggstripchart.R' 'ggsummarystats.R' 'ggtext.R' 'ggtexttable.R' 'ggviolin.R' 'gradient_color.R' 'grids.R' 'npc_to_data_coord.R' 'reexports.R' 'rotate.R' 'rotate_axis_text.R' 'rremove.R' 'set_palette.R' 'shared_docs.R' 'show_line_types.R' 'show_point_shapes.R' 'stat_anova_test.R' 'stat_central_tendency.R' 'stat_compare_means.R' 'stat_friedman_test.R' 'stat_kruskal_test.R' 'stat_mean.R' 'stat_overlay_normal_density.R' 'stat_pvalue_manual.R' 'stat_regline_equation.R' 'stat_welch_anova_test.R' 'text_grob.R' 'theme_pubr.R' 'theme_transparent.R' 'utils-geom-signif.R' 'utils-pipe.R' 'utils-tidyr.R'",
+      "Collate": "'utilities_color.R' 'utilities_base.R' 'desc_statby.R' 'utilities.R' 'add_summary.R' 'annotate_figure.R' 'as_ggplot.R' 'as_npc.R' 'axis_scale.R' 'background_image.R' 'bgcolor.R' 'border.R' 'p_format_utils.R' 'compare_means.R' 'create_aes.R' 'diff_express.R' 'facet.R' 'font.R' 'gene_citation.R' 'gene_expression.R' 'geom_bracket.R' 'geom_exec.R' 'utils-aes.R' 'utils_stat_test_label.R' 'geom_pwc.R' 'get_breaks.R' 'get_coord.R' 'get_legend.R' 'get_palette.R' 'ggadd.R' 'ggadjust_pvalue.R' 'ggarrange.R' 'ggballoonplot.R' 'ggpar.R' 'ggbarplot.R' 'ggboxplot.R' 'ggdensity.R' 'ggpie.R' 'ggdonutchart.R' 'stat_conf_ellipse.R' 'stat_chull.R' 'ggdotchart.R' 'ggdotplot.R' 'ggecdf.R' 'ggerrorplot.R' 'ggexport.R' 'gghistogram.R' 'ggline.R' 'ggmaplot.R' 'ggpaired.R' 'ggparagraph.R' 'ggpubr-package.R' 'ggpubr_args.R' 'ggpubr_options.R' 'ggqqplot.R' 'utilities_label.R' 'stat_cor.R' 'stat_stars.R' 'ggscatter.R' 'ggscatterhist.R' 'ggstripchart.R' 'ggsummarystats.R' 'ggtext.R' 'ggtexttable.R' 'ggviolin.R' 'gradient_color.R' 'grids.R' 'npc_to_data_coord.R' 'reexports.R' 'rotate.R' 'rotate_axis_text.R' 'rremove.R' 'set_palette.R' 'shared_docs.R' 'show_line_types.R' 'show_point_shapes.R' 'stat_anova_test.R' 'stat_central_tendency.R' 'stat_compare_means.R' 'stat_friedman_test.R' 'stat_kruskal_test.R' 'stat_mean.R' 'stat_overlay_normal_density.R' 'stat_pvalue_manual.R' 'stat_regline_equation.R' 'stat_welch_anova_test.R' 'text_grob.R' 'theme_pubr.R' 'theme_transparent.R' 'utils-geom-signif.R' 'utils-pipe.R' 'utils-tidyr.R' 'zzz.R'",
       "NeedsCompilation": "no",
-      "Author": "Alboukadel Kassambara [aut, cre], Laszlo Erdey [ctb] (Faculty of Economics and Business, University of Debrecen, Hungary)",
-      "Maintainer": "Alboukadel Kassambara <alboukadel.kassambara@gmail.com>",
       "Repository": "CRAN"
     },
     "ggrepel": {
@@ -4275,7 +4276,6 @@
       "Description": "R package with functions aiding teaching in the macroecology group at Univ. Potsdam.",
       "License": "GPL-3",
       "Encoding": "UTF-8",
-      "LazyData": "true",
       "Roxygen": "list(markdown = TRUE)",
       "RoxygenNote": "7.3.2",
       "Imports": [
@@ -4292,11 +4292,12 @@
         "unmarked"
       ],
       "RdMacros": "Rdpack",
-      "Author": "Damaris Zurell [aut, cre] (ORCID: <https://orcid.org/0000-0002-4628-3558>)",
-      "Maintainer": "Damaris Zurell <damaris.zurell@uni-potsdam.de>",
       "RemoteType": "xgit",
       "RemoteUrl": "https://gitup.uni-potsdam.de/macroecology/mecofun.git",
-      "RemoteSha": ""
+      "RemoteSha": "e2125f5ed1717412d4a68e9c646b53d3fb4609d4",
+      "NeedsCompilation": "no",
+      "Author": "Damaris Zurell [aut, cre] (ORCID: <https://orcid.org/0000-0002-4628-3558>)",
+      "Maintainer": "Damaris Zurell <damaris.zurell@uni-potsdam.de>"
     },
     "memoise": {
       "Package": "memoise",
@@ -5492,7 +5493,7 @@
     },
     "rdryad": {
       "Package": "rdryad",
-      "Version": "1.0.1.098",
+      "Version": "1.0.0",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Access for Dryad Web Services",
@@ -5501,7 +5502,6 @@
       "Authors@R": "c( person(\"Karthik\", \"Ram\", role = \"aut\", comment = c(ORCID = \"0000-0002-0233-1757\")), person(\"Scott\", \"Chamberlain\", role = c(\"aut\", \"cre\"),  email = \"myrmecocystus@gmail.com\", comment = c(ORCID = \"0000-0003-1444-9135\")), person(\"Carl\", \"Boettiger\", role = \"aut\",  comment = c(ORCID=\"0000-0002-1642-628X\")) )",
       "URL": "https://docs.ropensci.org/rdryad, https://github.com/ropensci/rdryad",
       "BugReports": "https://github.com/ropensci/rdryad/issues",
-      "Roxygen": "list(markdown = TRUE)",
       "Encoding": "UTF-8",
       "Language": "en-US",
       "Imports": [
@@ -5517,15 +5517,11 @@
         "testthat",
         "vcr"
       ],
-      "Config/roxygen2/version": "8.0.0",
-      "Config/pak/sysreqs": "libssl-dev",
-      "Repository": "https://ropensci.r-universe.dev",
-      "RemoteUrl": "https://github.com/ropensci/rdryad",
-      "RemoteRef": "master",
-      "RemoteSha": "47ce89d05d0608f468a036d8de19cd968df611c7",
+      "RoxygenNote": "7.1.0",
       "NeedsCompilation": "no",
-      "Author": "Karthik Ram [aut] (ORCID: <https://orcid.org/0000-0002-0233-1757>), Scott Chamberlain [aut, cre] (ORCID: <https://orcid.org/0000-0003-1444-9135>), Carl Boettiger [aut] (ORCID: <https://orcid.org/0000-0002-1642-628X>)",
-      "Maintainer": "Scott Chamberlain <myrmecocystus@gmail.com>"
+      "Author": "Karthik Ram [aut] (<https://orcid.org/0000-0002-0233-1757>), Scott Chamberlain [aut, cre] (<https://orcid.org/0000-0003-1444-9135>), Carl Boettiger [aut] (<https://orcid.org/0000-0002-1642-628X>)",
+      "Maintainer": "Scott Chamberlain <myrmecocystus@gmail.com>",
+      "Repository": "CRAN"
     },
     "recipes": {
       "Package": "recipes",

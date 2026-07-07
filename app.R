@@ -20,7 +20,16 @@ plan(multisession)
 # Configuration
 # ------------------------------------------------------------------------------
 
-manifest <- read.csv("inst/manifest.csv")
+manifest <- read.csv("inst/extdata/manifest.csv", stringsAsFactors=FALSE)
+manifest$filter_columns <- lapply(
+  manifest$filter_columns,
+  function(x) {
+    if (is.na(x) || x == "")
+      return(NULL)
+    
+    strsplit(x, ";")[[1]]
+  }
+)
 
 # ------------------------------------------------------------------------------
 # Startup resources
@@ -89,6 +98,7 @@ ui <- page_sidebar(
     tagList(
       selectInput("dataset", "Dataset", choices = manifest$file, selected = ""),
       uiOutput("var_selector"),
+      uiOutput("filter_selector"),
     ),
     width = 320
   ),
@@ -125,6 +135,10 @@ server <- function(input, output, session) {
     }, seed = NULL)
   })
   
+  dataset_info <- reactive({
+    manifest[manifest$dataset == input$dataset, ]
+  })
+  
   # --------------------------------------------------------------------------
   # dataset reactive (memoise replaces bindCache)
   # --------------------------------------------------------------------------
@@ -145,19 +159,66 @@ server <- function(input, output, session) {
     geom_col <- attr(dat, "sf_column")
     
     vars <- setdiff(names(dat), c("x", "y", geom_col))
+    filters <- dataset_info()$filter_columns[[1]]
+    vars <- vars[!vars %in% filters]
     req(length(vars) > 0)
     
     selectInput("var", "Variable", choices = vars)
   })
   
+  # --------------------------------------------------------------------------
+  # filter selector
+  # --------------------------------------------------------------------------
+  
+  output$filter_selector <- renderUI({
+    
+    filters <- dataset_info()$filter_columns[[1]]
+    if (is.null(filters))
+      return(NULL)
+    
+    dat <- req(load_dataset_task$result())
+    tagList(
+      lapply(filters, function(col) {
+        selectInput(
+          inputId = paste0("filter_", col),
+          label = col,
+          choices = sort(unique(dat[[col]])),
+          multiple = TRUE
+        )
+      })
+    )
+  })
+  
   # -------------------------------------------------------------------------- 
   # loading indicator 
   # -------------------------------------------------------------------------- 
+  
   output$loading <- renderUI({ 
     if (load_dataset_task$status() == "running") { 
       div( class = "alert alert-info", 
            "Loading dataset..." ) 
     } 
+  })
+  
+  # -------------------------------------------------------------------------- 
+  # filter data
+  # -------------------------------------------------------------------------- 
+  
+  filtered_data <- reactive({
+    dat <- req(load_dataset_task$result())
+    req(input$var)
+    cols <- dataset_info()$filter_columns[[1]]
+    if (is.null(cols))
+      return(dat)
+    
+    for (col in cols) {
+      values <- input[[paste0("filter_", col)]]
+      
+      if (!is.null(values))
+        dat <- dat[dat[[col]] %in% values, ]
+    }
+    
+    dat
   })
   
   # --------------------------------------------------------------------------
@@ -179,11 +240,9 @@ server <- function(input, output, session) {
   # --------------------------------------------------------------------------
   
   output$plot <- renderPlot({ 
-    req(!load_dataset_task$status() == "running") 
-    dat <- req(load_dataset_task$result())
     req(input$var)
-    cached_plot(dat = dat, var = input$var, outline = get_outline()) 
-    })
+    cached_plot(dat = filterd_data(), var = input$var, outline = get_outline()) 
+  })
 }
 
 shinyApp(ui, server)
