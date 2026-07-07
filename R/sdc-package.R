@@ -1,9 +1,9 @@
-#' R Package to access Swiss climate, elevation and land-use data
+#' R Package to access Swiss climate, elevation, land-use and biodiversity data
 #' 
 #' @name sdc package
 #' @aliases sdcpackage
-#' @docType package
-#' @title R Package to access Swiss climate, elevation and land-use data
+#' @docType _PACKAGE
+#' @title R Package to access Swiss climate, elevation, land-use and biodiversity data
 #' @author RS-eco
 #'
 #' @importFrom dplyr left_join %>%
@@ -80,11 +80,11 @@ NULL
 NULL
 #'
 #' @docType data
-#' @name inat_che_1965_2021
+#' @name inat_che_1965_2025
 #' @title iNaturalist data of Switzerland
-#' @description iNatrualist data of Switzerland for 1962 - 2022
-#' @usage data(inat_che_1965_2021)
-#' @details iNatrualist occurrence data of Switzerland for 1962 - 2022.
+#' @description iNatrualist data of Switzerland for 1965 - 2025
+#' @usage data(inat_che_1965_2025)
+#' @details iNatrualist occurrence data of Switzerland for 1965 - 2025.
 #' @format A \code{data.frame} object with xxx observations and 9 variables.
 #' @source This data has been obtained through the rinat package from: 
 #' \itemize{\item \url{https://www.inaturalist.org/}}

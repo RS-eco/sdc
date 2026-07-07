@@ -8,6 +8,12 @@ library(memoise)
 library(dplyr)
 library(sf)
 library(ggplot2)
+library(cachem)
+library(memoise)
+library(future)
+library(promises)
+
+plan(multisession)
 
 # ------------------------------------------------------------------------------
 # Configuration
@@ -48,8 +54,17 @@ load_dataset <- function(path, manifest, mtime) {
   dat
 }
 
-# memoise cache (in-memory; fast + safe)
-cached_load_dataset <- memoise(load_dataset)
+# Use a disk cache instead of the default memory cache
+library(cachem)
+dataset_cache <- cache_disk(
+  dir = "cache",
+  max_size = 5 * 1024^3   # 5 GB
+)
+
+cached_load_dataset <- memoise(
+  load_dataset,
+  cache = dataset_cache
+)
 
 # ------------------------------------------------------------------------------
 # UI
@@ -109,6 +124,8 @@ server <- function(input, output, session) {
       fi$mtime   # important: ensures invalidation when file changes
     )
   })
+  
+  #data <- reactiveVal(NULL)
   
   # --------------------------------------------------------------------------
   # variable selector

@@ -48,10 +48,10 @@ library(mecofun)
 
 ```{r}
 # Load species data from iNaturalist data
-data("inat_che_1965_2021")
+data("inat_che_1965_2025")
 
-# Get occurrence records from Phylloscopus bonelli
-turd_torq <- inat_che_1965_2021 %>% filter(scientific_name == "Turdus torquatus")
+# Get occurrence records from Turdus torquatus
+turd_torq <- inat_che_1965_2025 %>% filter(scientific_name == "Turdus torquatus")
 rm(inat_che_1965_2021); gc()
 
 # Load climate data

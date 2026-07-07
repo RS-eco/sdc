@@ -27,7 +27,7 @@ If package installation with `install_github()` fails, try this as an alternativ
 
 ```{r, eval=F}
 tmp_zip <- tempfile(fileext = ".zip")
-source_url <- "https://api.github.com/repos/RS-eco/bavDC/zipball/main"
+source_url <- "https://api.github.com/repos/RS-eco/sdc/zipball/main"
 utils::download.file(source_url, destfile=tmp_zip, method="wget")
 file.exists(tmp_zip)
 
@@ -98,3 +98,11 @@ load(system.file("extdata", "srtm3_che_1arc.rda", package = "sdc"))
 ```
 
 **Note:** Please also have a look at the corresponding [vignette](https://github.com/RS-eco/sdc/blob/main/vignettes/sdc-elevation.Rmd) for detailed information about the dataset and the related variables.
+
+### iNaturalist biodiversity data
+
+```{r}
+data("inat_che_1965_2025")
+```
+
+**Note:** Please also have a look at the corresponding [vignette](https://github.com/RS-eco/sdc/blob/main/vignettes/sdc-sdms.Rmd) for a detailed example of using the iNaturalist data and the above-mentioned bioclimatic data to produce species distribution models.
