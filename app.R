@@ -13,6 +13,7 @@ library(memoise)
 library(future)
 library(promises)
 
+#options(shiny.error = browser, shiny.fullstacktrace = TRUE)
 plan(multisession)
 
 # ------------------------------------------------------------------------------
@@ -29,23 +30,16 @@ source("R/standardiseColumns.R")
 source("R/make_plot.R")
 
 # ------------------------------------------------------------------------------
-# Utilities
-# ------------------------------------------------------------------------------
-
-load_file <- function(path) {
-  env <- new.env(parent = emptyenv())
-  objs <- load(path, envir = env)
-  env[[objs[1]]]
-}
-
-che <- load_file("data/che.rda")
-
-# ------------------------------------------------------------------------------
-# Memoised dataset loader
+# Define load dataset function
 # ------------------------------------------------------------------------------
 
 load_dataset <- function(path, manifest, mtime) {
-  dat <- load_file(path)
+  env <- new.env(parent = emptyenv())
+  objs <- load(path, envir = env)
+  if (length(objs) == 0) {
+    stop("No objects were loaded from: ", path)
+  }
+  dat <- env[[objs[[1]]]]
   dat <- standardiseColumns(dat)
   ds_type <- manifest$dataset_type[match(path, manifest$file)]
   if (ds_type == "sf" && !inherits(dat, "sf")) {
@@ -54,7 +48,10 @@ load_dataset <- function(path, manifest, mtime) {
   dat
 }
 
+# ------------------------------------------------------------------------------
 # Use a disk cache instead of the default memory cache
+# ------------------------------------------------------------------------------
+
 library(cachem)
 dataset_cache <- cache_disk(
   dir = "cache",
@@ -65,6 +62,15 @@ cached_load_dataset <- memoise(
   load_dataset,
   cache = dataset_cache
 )
+
+plot_cache <- cache_disk("plot_cache")
+cached_plot <- memoise(make_plot, cache = plot_cache)
+
+# ------------------------------------------------------------------------------
+# Define function to load outline
+# ------------------------------------------------------------------------------
+
+get_outline <- memoise(function() {load_file("data/che.rda")}, cache = dataset_cache)
 
 # ------------------------------------------------------------------------------
 # UI
@@ -108,31 +114,32 @@ ui <- page_sidebar(
 
 server <- function(input, output, session) {
   
+  load_dataset_task <- ExtendedTask$new(function(path) {
+    future_promise({
+      fi <- file.info(path)
+      cached_load_dataset(
+        path,
+        manifest,
+        fi$mtime
+      )
+    }, seed = NULL)
+  })
+  
   # --------------------------------------------------------------------------
   # dataset reactive (memoise replaces bindCache)
   # --------------------------------------------------------------------------
   
-  data <- reactive({
+  observeEvent(input$dataset, { 
     req(input$dataset)
-    
-    fi <- file.info(input$dataset)
-    req(!is.na(fi$mtime))
-    
-    cached_load_dataset(
-      input$dataset,
-      manifest,
-      fi$mtime   # important: ensures invalidation when file changes
-    )
+    load_dataset_task$invoke(input$dataset)
   })
-  
-  #data <- reactiveVal(NULL)
   
   # --------------------------------------------------------------------------
   # variable selector
   # --------------------------------------------------------------------------
   
   output$var_selector <- renderUI({
-    dat <- data()
+    dat <- req(load_dataset_task$result())
     req(ncol(dat) > 0)
     
     geom_col <- attr(dat, "sf_column")
@@ -143,14 +150,23 @@ server <- function(input, output, session) {
     selectInput("var", "Variable", choices = vars)
   })
   
+  # -------------------------------------------------------------------------- 
+  # loading indicator 
+  # -------------------------------------------------------------------------- 
+  output$loading <- renderUI({ 
+    if (load_dataset_task$status() == "running") { 
+      div( class = "alert alert-info", 
+           "Loading dataset..." ) 
+    } 
+  })
+  
   # --------------------------------------------------------------------------
   # info panel
   # --------------------------------------------------------------------------
   
   output$info <- renderPrint({
+    dat <- req(load_dataset_task$result())
     req(input$var)
-    
-    dat <- data()
     
     cat("Rows:", nrow(dat), "\n")
     cat("Columns:", ncol(dat), "\n\n")
@@ -162,15 +178,12 @@ server <- function(input, output, session) {
   # plot
   # --------------------------------------------------------------------------
   
-  output$plot <- renderPlot({
-    req(input$dataset, input$var)
-    
-    make_plot(
-      dat = data(),
-      var = input$var,
-      outline = che
-    )
-  })
+  output$plot <- renderPlot({ 
+    req(!load_dataset_task$status() == "running") 
+    dat <- req(load_dataset_task$result())
+    req(input$var)
+    cached_plot(dat = dat, var = input$var, outline = get_outline()) 
+    })
 }
 
 shinyApp(ui, server)
