@@ -8,7 +8,7 @@ Authors@R:
 Maintainer: RS-eco <rs-eco@posteo.de>
 Description: R Package to access Swiss climate, elevation, land-use and biodiversity data
 Depends: R (>= 3.5.0)
-Imports: dplyr
+Imports: dplyr, shiny
 Suggests: ggplot2, sf, terra, tidyr, knitr, rmarkdown, magrittr, scales, scico, edc, data.table,
     ggthemes, ggpubr, zoo, lubridate, patchwork, caret, remotes, mecofun
 License: file LICENSE
