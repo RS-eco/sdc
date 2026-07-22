@@ -1,14 +1,12 @@
 #' R Package to access Swiss climate, elevation, land-use and biodiversity data
 #' 
 #' @name sdc package
-#' @aliases sdcpackage
-#' @docType _PACKAGE
+#' @aliases sdc-package
 #' @title R Package to access Swiss climate, elevation, land-use and biodiversity data
 #' @author RS-eco
-#'
 #' @importFrom dplyr left_join %>%
 #' @keywords package
-#'
+"_PACKAGE"
 NULL
 #' @docType data
 #' @name ch2018_bioclim_che

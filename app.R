@@ -4,7 +4,6 @@
 
 library(shiny)
 library(bslib)
-library(memoise)
 library(dplyr)
 library(sf)
 library(ggplot2)
@@ -79,7 +78,11 @@ cached_plot <- memoise(make_plot, cache = plot_cache)
 # Define function to load outline
 # ------------------------------------------------------------------------------
 
-get_outline <- memoise(function() {load_file("data/che.rda")}, cache = dataset_cache)
+outline <- function() {
+  env <- new.env(parent = emptyenv())
+  objs <- load("data/che.rda", envir = env)
+  env[[objs[[1]]]]
+}
 
 # ------------------------------------------------------------------------------
 # UI
@@ -96,7 +99,7 @@ ui <- page_sidebar(
   
   sidebar = sidebar(
     tagList(
-      selectInput("dataset", "Dataset", choices = manifest$file, selected = ""),
+      selectInput("dataset", "Dataset", choices = manifest$label, selected = manifest$label[1]),
       uiOutput("var_selector"),
       uiOutput("filter_selector"),
     ),
@@ -110,6 +113,8 @@ ui <- page_sidebar(
       card_header("Dataset Summary"),
       verbatimTextOutput("info")
     ),
+    
+    uiOutput("loading"),
     
     card(
       full_screen = TRUE,
@@ -136,16 +141,16 @@ server <- function(input, output, session) {
   })
   
   dataset_info <- reactive({
-    manifest[manifest$dataset == input$dataset, ]
+    manifest[manifest$label == input$dataset, ]
   })
   
   # --------------------------------------------------------------------------
   # dataset reactive (memoise replaces bindCache)
   # --------------------------------------------------------------------------
   
-  observeEvent(input$dataset, { 
-    req(input$dataset)
-    load_dataset_task$invoke(input$dataset)
+  observeEvent(dataset_info(), {
+    req(nrow(dataset_info()) == 1)
+    load_dataset_task$invoke(dataset_info()$file)
   })
   
   # --------------------------------------------------------------------------
@@ -183,7 +188,7 @@ server <- function(input, output, session) {
           inputId = paste0("filter_", col),
           label = col,
           choices = sort(unique(dat[[col]])),
-          multiple = TRUE
+          selected = dat[[col]][1]
         )
       })
     )
@@ -214,7 +219,7 @@ server <- function(input, output, session) {
     for (col in cols) {
       values <- input[[paste0("filter_", col)]]
       
-      if (!is.null(values))
+      if (length(values) > 0)
         dat <- dat[dat[[col]] %in% values, ]
     }
     
@@ -241,7 +246,7 @@ server <- function(input, output, session) {
   
   output$plot <- renderPlot({ 
     req(input$var)
-    cached_plot(dat = filterd_data(), var = input$var, outline = get_outline()) 
+    cached_plot(dat = filtered_data(), var = input$var, outline = outline) 
   })
 }
 

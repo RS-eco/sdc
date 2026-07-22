@@ -1,0 +1,10 @@
+name: sdc
+title:
+username: rs-eco
+account: rs-eco
+server: connect.posit.cloud
+hostUrl: https://api.connect.posit.cloud/v1
+appId: 019f88aa-baa1-e815-380c-ee695a17aac7
+bundleId:
+url:
+version: 1

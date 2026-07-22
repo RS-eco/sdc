@@ -1,0 +1,31 @@
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
+
+# User-specific files
+.Ruserdata
+
+# Git files
+.git/
+
+# RStudio files
+.Rproj.user/
+
+# knitr and R markdown default cache directories
+*_cache/
+/cache/
+
+# R Environment Variables
+.Renviron
+
+# extdata files
+inst/extdata/gadm
+inst/extdata/srtm3_che_1arc.rda
+
+# targets files
+_targets/
+cache/
+*.rds

@@ -6,13 +6,13 @@ rm(list=ls()); gc()
 
 # Load packages
 library(dplyr); library(tidyr); library(letsR)
-library(ggplot2); library(scico)
+library(ggplot2); library(scico); library(terra)
 
-# Load edc package
+# Load SDC package
 library(sdc)
 
 # Load shapefile of Switzerland
-data("che", package="sdc")
+data("che")
 
 ## -----------------------------------------------------------------------------
 # Install mecofun package if not available
@@ -25,4 +25,268 @@ library(mecofun)
 #' This package includes the following functions:
 #' predictSDM, crossvalSDM, evalSDM, TSS, expl_deviance, inflated_response
 #' eo_mask, partial_response, range_size, range_centre, select07, select07_cv
+
+## -----------------------------------------------------------------------------
+# Load species data from iNaturalist data
+data("inat_che_1965_2025")
+
+# Get occurrence records from Turdus torquatus
+turd_torq <- inat_che_1965_2025 %>% filter(scientific_name == "Turdus torquatus")
+rm(inat_che_1965_2025); gc()
+
+# Load climate data
+data("cordex_bioclim_che")
+
+# Select for current conditions & calculate ensemble mean
+curclim <- cordex_bioclim_che |> filter(time_frame == "1991-2020") |>
+  group_by(x,y) |> summarise_at(vars(bio1:bio19), ~mean(.,na.rm=T)) |> 
+  mutate_at(vars(-c(x,y)), replace_na, 0)
+
+# Select for future conditions and calculate ensemble mean across GCMs
+futclim <- cordex_bioclim_che %>% filter(time_frame != "1991-2020") %>%
+  group_by(x,y,time_frame, rcp) %>% summarise_at(vars(bio1:bio19), ~mean(.,na.rm=T)) |>
+  mutate_at(vars(-c(x,y)), replace_na, 0)
+rm(cordex_bioclim_che); gc()
+
+## -----------------------------------------------------------------------------
+# plot species using ggplot
+turd_torq %>% ggplot() + 
+  geom_point(aes(x=longitude, y=latitude, color=`scientific_name`), shape=15, size=2) + 
+  scale_color_manual(values=c("grey80", "blue")) + 
+  geom_sf(data=che, fill=NA) + coord_sf() + theme_bw() + labs(x="", y="") + 
+  ggtitle("Turdus torquatus current range") + theme(legend.position = "none")
+
+# plot environmental variables
+
+#define two colour scales for annual mean temperature and annual precipitation
+tempcol <- scale_fill_scico(name = "°C", palette="roma", direction=-1,
+                            limits = c(min(curclim$bio1),max(futclim$bio1)))
+preccol <- scale_fill_scico(name = "mm", palette="roma",
+                            limits = c(min(curclim$bio12),max(futclim$bio12)))
+
+curclim %>% # which dataset to use
+  ggplot() + # start plotting
+  # type of plot, define x and y axis, define fill the environmental variable
+  geom_tile(aes(x=x, y=y, fill=bio1)) + 
+  scale_fill_scico(name="°C", palette="roma", direction=-1) +
+  coord_sf() + theme_bw() + labs(x="", y="") + # set x/y to equal, use custom map-theme
+  ggtitle("Annual Mean Temperature") + # set plot title
+  theme(legend.text = element_text(size=10)) # set font size for the legend
+
+#different colour scales (see above):
+
+#bio1: annual mean temperature
+
+curclim %>% ggplot() + geom_tile(aes(x=x, y=y, fill=bio1)) + 
+  tempcol + coord_sf() + theme_bw() + labs(x="", y="") + 
+  ggtitle("Annual Mean Temperature") + 
+  theme(legend.position = "right",
+        panel.background = element_rect(fill="transparent"),
+        plot.background = element_rect(fill="transparent"))
+
+#bio12: annual precipitation
+
+curclim %>% ggplot() + geom_tile(aes(x=x, y=y, fill=bio12)) + 
+  preccol + coord_sf() + theme_bw() + labs(x="", y="") + 
+  ggtitle("Annual Precipitation") + 
+  theme(legend.position = "right",
+        panel.background = element_rect(fill="transparent"),
+        plot.background = element_rect(fill="transparent"))
+
+#bio1
+
+futclim %>% filter(time_frame == "2041-2070", rcp == "rcp26") %>% 
+  ggplot() + geom_tile(aes(x=x, y=y, fill=bio1)) + 
+  tempcol + coord_sf() + theme_bw() + labs(x="", y="") +  
+  ggtitle("Annual Mean Temperature RCP2.6, 2055") + 
+  theme(legend.position = "none",
+        panel.background = element_rect(fill="transparent"),
+        plot.background = element_rect(fill="transparent"))
+
+#bio12
+
+futclim %>% filter(time_frame == "2041-2070", rcp == "rcp26") %>% 
+  ggplot() + geom_tile(aes(x=x, y=y, fill=bio12)) + 
+  preccol + coord_sf() + theme_bw() + labs(x="", y="") + 
+  ggtitle("Annual Precipitation RCP2.6, 2055") + 
+  theme(legend.position = "none",
+        panel.background = element_rect(fill="transparent"),
+        plot.background = element_rect(fill="transparent"))
+
+## -----------------------------------------------------------------------------
+# Create presence-absence data.frame
+turd_torq <- letsR::lets.presab.points(xy=turd_torq[,c("longitude", "latitude")], 
+                                       species=turd_torq$scientific_name, 
+                                       xmn=min(turd_torq$longitude), xmx=max(turd_torq$longitude),
+                                       ymn=min(turd_torq$latitude), ymx=max(turd_torq$latitude), 
+                                       resol=0.11, remove.cells=F, show.matrix = T)
+turd_torq <- as.data.frame(turd_torq)
+turd_torq <- turd_torq %>% replace_na(list(`Turdus torquatus` = 0))
+colnames(turd_torq)[3] <- "Turdus.torquatus"
+
+curenv_r <- terra::rast(curclim, type="xyz") #turn climate data into raster
+turd_torq_r <- terra::rast(turd_torq, type="xyz") #turn species data (here: odonata) into raster
+turd_torq_r <- terra::mask(terra::resample(turd_torq_r, curenv_r), curenv_r[[1]])
+turd_torq_r[turd_torq_r > 0] <- 1
+
+spec_env <- c(turd_torq_r, curenv_r) #combine Numenius.arquata and climate raster
+spec_env <- as.data.frame(spec_env, xy=TRUE) %>% drop_na()
+
+# 2 explanatory variables:
+myExpl2 <- c("bio1", "bio12")
+
+# Automatically create model formula from variables
+(formExpl2 <- as.formula(paste("Turdus.torquatus ~ ", 
+                               paste(myExpl2, collapse="+"),sep = "")))
+
+# Fit Generalized Linear Model (GLM) in the simplest form
+glm_2 <- glm(formExpl2, family='binomial', data=spec_env)
+
+# You would need to specify polynomials and interactions manually in the formula:
+
+# Fit Generalized Linear Model (GLM) in a bit more complex form (with polynomials)
+glm_2_Pol <- glm(Turdus.torquatus ~ bio1 + I(bio1^2) + bio12 + I(bio12^2), 
+                 family='binomial', data=spec_env)
+
+# Fit Generalized Linear Model (GLM) in an even more complex form (with polynomials and interactions)
+glm_2_PolInt <- glm(Turdus.torquatus ~ bio1 + I(bio1^2) + bio12 + I(bio12^2) + 
+                      bio1*bio12, family='binomial', data=spec_env)
+
+# check model summary ----
+(sum_glm_2 <- summary(glm_2))
+(sum_glm_2_PolInt <- summary(glm_2_PolInt))
+(sum_glm_2_Pol <- summary(glm_2_Pol))
+
+## -----------------------------------------------------------------------------
+# basic plots of occurrence vs. explanatory variable
+par(mfrow=c(2,1))
+plot(spec_env$bio1, spec_env$Turdus.torquatus, ylab="", xlab="bio1")
+plot(spec_env$bio12, spec_env$Turdus.torquatus, ylab="", xlab="bio12")
+
+# check partial response curves
+par(mfrow=c(3,2))
+partial_response(glm_2, predictors = spec_env[,myExpl2])
+partial_response(glm_2_Pol, predictors = spec_env[,myExpl2]) 
+partial_response(glm_2_PolInt, predictors = spec_env[,myExpl2])
+
+#' This is needed for getting TSS, AUC and Kappa values
+
+# Make cross-validated predictions for GLM:
+crosspred_glm_2 <- crossvalSDM(glm_2, kfold=5, 
+                               traindat= spec_env, colname_pred=myExpl2, 
+                               colname_species = "Turdus.torquatus")
+crosspred_glm_2_Pol <- crossvalSDM(glm_2_Pol, kfold=5, 
+                                   traindat= spec_env, colname_pred=myExpl2, 
+                                   colname_species = "Turdus.torquatus")
+
+# Assess cross-validated model performance
+(eval_glm_2 <- evalSDM(observation = spec_env$Turdus.torquatus, 
+                       predictions = crosspred_glm_2))
+(eval_glm_2_Pol <- evalSDM(observation = spec_env$Turdus.torquatus, 
+                           predictions = crosspred_glm_2_Pol))
+
+# check variable importances
+(glm_imp <- caret::varImp(glm_2, scale=T))
+par(mfrow=c(1,1))
+barplot((glm_imp$Overall/sum(glm_imp$Overall)*100)[2:1], 
+        names.arg=rownames(glm_imp)[2:1], horiz=T,
+        main="GLM", xlab="Relative influence")
+
+## -----------------------------------------------------------------------------
+# Make predictions to current climate:
+spec_env$pred_glm_2 <- predictSDM(glm_2, spec_env)
+
+# Make binary/threshholded predictions:
+spec_env$bin_glm_2 <- ifelse(spec_env$pred_glm_2 > eval_glm_2$thresh, 1, 0)
+
+par(mfrow=c(1,1), mar=c(5,5,4,1))
+boxplot(spec_env$pred_glm_2 ~ spec_env$Turdus.torquatus, las=1, 
+        xlab="Aktuelle Verbreitung", ylab="Vorkommenswahrscheinlichkeit", cex.lab=2,
+        col="dodgerblue4", cex.axis=1.5, main="GLM-Modell mit 2 Klimavariablen", cex.main=2)
+
+#---------------------------------------------------
+#' ## plot species using ggplot 
+#---------------------------------------------------
+
+# plot histogramm
+
+spec_env %>% ggplot() + geom_histogram(aes(x=pred_glm_2), col="grey0", alpha=0.2) +
+  labs(y="Number of grid cells", x="Occurrence probability") + 
+  geom_hline(yintercept = 0, linetype="dashed", color="darkgrey") + theme_classic()
+
+# plot maps
+
+# probability map
+(plot_curclim_GLM <- spec_env %>% ggplot() + 
+    geom_tile(aes(x=x, y=y, fill=pred_glm_2)) + 
+    scale_fill_scico(name="Probability of\noccurrence", palette="roma", direction=-1)  +  
+    coord_sf() + theme_bw() + labs(x="", y="") + 
+    ggtitle("GLM current climate") + 
+    theme(legend.text = element_text(size=10)))
+
+# binary map
+(plot_curclim_GLM_bin <- 
+    spec_env %>%
+    ggplot() + geom_tile(aes(x=x, y=y, fill=as.factor(bin_glm_2))) + 
+    scale_fill_manual(name="Occurrence", values=c("grey80", "blue")) + 
+    coord_sf() + theme_bw() + labs(x="", y="") + 
+    ggtitle("GLM current climate") + 
+    theme(legend.text = element_text(size=10)))
+
+## -----------------------------------------------------------------------------
+# Assess novel environments in future climate layer:
+
+# Values of 1 in the eo.mask will indicate novel environmental conditions
+futclim$eo_mask <- eo_mask(curclim[,myExpl2],futclim[,myExpl2])
+futclim %>% # which dataset to use
+  ggplot() +              # start plotting
+  # type of plot, define x axis, y axis is automatically a count, define color and transparency
+  geom_tile(aes(x=x, y=y, fill=as.factor(eo_mask))) +
+  scale_fill_manual(name="", values=c("grey80", "blue")) + 
+  coord_sf() + theme_bw() + labs(x="", y="") + # set x/y to equal, use custom map-theme
+  ggtitle("Environmental novelty") +       # set plot title
+  theme(legend.text = element_text(size=10)) # set font size for the legend
+
+# Make predictions to futclim
+futclim$pred_glm_2 <- predictSDM(glm_2, futclim)
+
+# Make binary/threshholded predictions:
+futclim$bin_glm_2 <- ifelse(futclim$pred_glm_2 > eval_glm_2$thresh, 1, 0)
+
+# => using this framework you can proceed with other future climate data
+
+#---------------------------------------------------
+# plot species using ggplot 
+#---------------------------------------------------
+
+# plot histogramm
+futclim %>% # which dataset to use
+  ggplot() +              # start plotting
+  # type of plot, define x axis, y axis is automatically a count, define color and transparency
+  geom_histogram(aes(x=pred_glm_2), col="grey0", alpha=0.2) +
+  labs(y="Number of grid cells", x="Occurrence probability",        # add axis labels
+       title="Distribution of Turdus.torquatus occurrence probability under CC2670 GLM") +  
+  geom_hline(yintercept = 0, linetype="dashed", color="darkgrey") + # add a horizontal line
+  theme_classic()
+
+# plot maps
+
+# probability map
+(plot_CC6070_GLM <- 
+    futclim %>% # which dataset to use
+    ggplot() + geom_tile(aes(x=x, y=y, fill=pred_glm_2)) + 
+    scale_fill_scico(name="Probability of\noccurrence", palette = "roma", direction=-1) +
+    coord_sf() + theme_bw() + labs(x="", y="") + 
+    ggtitle("GLM CC6070") +       # set plot title
+    theme(legend.text = element_text(size=10))) # set font size for the legend
+
+# binary map
+(plot_CC6070_GLM_bin <- 
+    futclim %>% # which dataset to use
+    ggplot() + geom_tile(aes(x=x, y=y, fill=as.factor(bin_glm_2))) + 
+    scale_fill_manual(name="Occurrence", values=c("grey80", "blue")) + 
+    coord_sf() + theme_bw() + labs(x="", y="") + 
+    ggtitle("GLM CC6070") +       # set plot title
+    theme(legend.text = element_text(size=10))) # set font size for the legend
+rm(list=ls()); invisible(gc())
 

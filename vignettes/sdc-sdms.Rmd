@@ -20,13 +20,13 @@ rm(list=ls()); gc()
 
 # Load packages
 library(dplyr); library(tidyr); library(letsR)
-library(ggplot2); library(scico)
+library(ggplot2); library(scico); library(terra)
 
-# Load edc package
+# Load SDC package
 library(sdc)
 
 # Load shapefile of Switzerland
-data("che", package="sdc")
+data("che")
 ```
 
 ## mecofun package
@@ -52,38 +52,20 @@ data("inat_che_1965_2025")
 
 # Get occurrence records from Turdus torquatus
 turd_torq <- inat_che_1965_2025 %>% filter(scientific_name == "Turdus torquatus")
-rm(inat_che_1965_2021); gc()
+rm(inat_che_1965_2025); gc()
 
 # Load climate data
 data("cordex_bioclim_che")
 
 # Select for current conditions & calculate ensemble mean
-curclim <- cordex_bioclim_che %>% filter(time_frame == "1991-2020") %>%
-  group_by(x,y) %>% summarise_at(vars(bio1:bio19), ~mean(.,na.rm=T))
-
-# Add landcover data to curclim
-data("corine_lc_che")
-corine_lc_che <- corine_lc_che %>% group_by(x,y) %>% 
-  pivot_longer(cols=!c("x","y"), names_to = "year", values_to="clc"); gc()
-corine_lc_che$present <- 1
-corine_lc_che$year <- as.numeric(corine_lc_che$year)
-corine_lc_che <- corine_lc_che %>% filter(year == 2018) %>% dplyr::select(-year) %>% 
-  pivot_wider(names_from="clc", values_from="present", values_fill = 0); gc()
-
-curclim <- raster::rasterFromXYZ(curclim, crs="+init=EPSG:4326"); gc()
-clc_names <- colnames(corine_lc_che)[3:ncol(corine_lc_che)]
-corine_lc_che <- raster::rasterFromXYZ(corine_lc_che, crs="+proj=laea +lat_0=52 +lon_0=10 +x_0=4321000 +y_0=3210000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"); gc()
-names(corine_lc_che) <- clc_names
-corine_lc_che <- raster::projectRaster(corine_lc_che, crs="+init=EPSG:4326")
-corine_lc_che <- raster::resample(corine_lc_che, curclim); gc()
-corine_lc_che[] <- round(corine_lc_che)
-
-curenv <- raster::stack(curclim, corine_lc_che) %>% raster::rasterToPoints() %>%
-  as.data.frame() %>% mutate_at(vars(-c(x,y)), replace_na, 0); rm(curclim, corine_lc_che)
+curclim <- cordex_bioclim_che |> filter(time_frame == "1991-2020") |>
+  group_by(x,y) |> summarise_at(vars(bio1:bio19), ~mean(.,na.rm=T)) |> 
+  mutate_at(vars(-c(x,y)), replace_na, 0)
 
 # Select for future conditions and calculate ensemble mean across GCMs
 futclim <- cordex_bioclim_che %>% filter(time_frame != "1991-2020") %>%
-  group_by(x,y,time_frame, rcp) %>% summarise_at(vars(bio1:bio19), ~mean(.,na.rm=T))
+  group_by(x,y,time_frame, rcp) %>% summarise_at(vars(bio1:bio19), ~mean(.,na.rm=T)) |>
+  mutate_at(vars(-c(x,y)), replace_na, 0)
 rm(cordex_bioclim_che); gc()
 ```
 
@@ -101,11 +83,11 @@ turd_torq %>% ggplot() +
 
 #define two colour scales for annual mean temperature and annual precipitation
 tempcol <- scale_fill_scico(name = "°C", palette="roma", direction=-1,
-                            limits = c(min(curenv$bio1),max(futclim$bio1)))
+                            limits = c(min(curclim$bio1),max(futclim$bio1)))
 preccol <- scale_fill_scico(name = "mm", palette="roma",
-                            limits = c(min(curenv$bio12),max(futclim$bio12)))
+                            limits = c(min(curclim$bio12),max(futclim$bio12)))
 
-curenv %>% # which dataset to use
+curclim %>% # which dataset to use
   ggplot() + # start plotting
   # type of plot, define x and y axis, define fill the environmental variable
   geom_tile(aes(x=x, y=y, fill=bio1)) + 
@@ -118,7 +100,7 @@ curenv %>% # which dataset to use
 
 #bio1: annual mean temperature
 
-curenv %>% ggplot() + geom_tile(aes(x=x, y=y, fill=bio1)) + 
+curclim %>% ggplot() + geom_tile(aes(x=x, y=y, fill=bio1)) + 
   tempcol + coord_sf() + theme_bw() + labs(x="", y="") + 
   ggtitle("Annual Mean Temperature") + 
   theme(legend.position = "right",
@@ -127,7 +109,7 @@ curenv %>% ggplot() + geom_tile(aes(x=x, y=y, fill=bio1)) +
 
 #bio12: annual precipitation
 
-curenv %>% ggplot() + geom_tile(aes(x=x, y=y, fill=bio12)) + 
+curclim %>% ggplot() + geom_tile(aes(x=x, y=y, fill=bio12)) + 
   preccol + coord_sf() + theme_bw() + labs(x="", y="") + 
   ggtitle("Annual Precipitation") + 
   theme(legend.position = "right",
@@ -166,15 +148,15 @@ turd_torq <- letsR::lets.presab.points(xy=turd_torq[,c("longitude", "latitude")]
                                        resol=0.11, remove.cells=F, show.matrix = T)
 turd_torq <- as.data.frame(turd_torq)
 turd_torq <- turd_torq %>% replace_na(list(`Turdus torquatus` = 0))
+colnames(turd_torq)[3] <- "Turdus.torquatus"
 
-curenv_r <- raster::rasterFromXYZ(curenv) #turn climate data into raster
-turd_torq_r <- raster::rasterFromXYZ(turd_torq) #turn species data (here: odonata) into raster
-turd_torq_r <- raster::mask(raster::resample(turd_torq_r, curenv_r), curenv_r[[1]])
+curenv_r <- terra::rast(curclim, type="xyz") #turn climate data into raster
+turd_torq_r <- terra::rast(turd_torq, type="xyz") #turn species data (here: odonata) into raster
+turd_torq_r <- terra::mask(terra::resample(turd_torq_r, curenv_r), curenv_r[[1]])
 turd_torq_r[turd_torq_r > 0] <- 1
-#raster::plot(turd_torq_r)
 
-spec_env <- raster::stack(turd_torq_r, curenv_r) #combine Numenius.arquata and climate raster
-spec_env <- as.data.frame(raster::rasterToPoints(spec_env)) %>% drop_na()
+spec_env <- c(turd_torq_r, curenv_r) #combine Numenius.arquata and climate raster
+spec_env <- as.data.frame(spec_env, xy=TRUE) %>% drop_na()
 
 # 2 explanatory variables:
 myExpl2 <- c("bio1", "bio12")
@@ -292,7 +274,7 @@ spec_env %>% ggplot() + geom_histogram(aes(x=pred_glm_2), col="grey0", alpha=0.2
 # Assess novel environments in future climate layer:
 
 # Values of 1 in the eo.mask will indicate novel environmental conditions
-futclim$eo_mask <- eo_mask(curenv[,myExpl2],futclim[,myExpl2])
+futclim$eo_mask <- eo_mask(curclim[,myExpl2],futclim[,myExpl2])
 futclim %>% # which dataset to use
   ggplot() +              # start plotting
   # type of plot, define x axis, y axis is automatically a count, define color and transparency
@@ -345,4 +327,3 @@ futclim %>% # which dataset to use
     theme(legend.text = element_text(size=10))) # set font size for the legend
 rm(list=ls()); invisible(gc())
 ```
-
