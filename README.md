@@ -1,13 +1,17 @@
 sdc: Swiss Data Cube
 ================
 
+<!--
+If you are interested to see what sdc has to offer without diving into R, click [here](https://rs-eco.shinyapps.io/divViz/).
+-->
+
 ## Installation
 
 You can install sdc from github with:
 
 ``` r
 # Install remotes if not available
-if (!"remotes" %in% installed.packages()[, "Package"]) install.packages("remotes")
+if(!"remotes" %in% installed.packages()[,"Package"]) install.packages("remotes")
 
 # Install sdc package from Github
 remotes::install_github("RS-eco/sdc", build_vignettes = T)
@@ -18,8 +22,8 @@ alternative:
 
 ``` r
 tmp_zip <- tempfile(fileext = ".zip")
-source_url <- "https://api.github.com/repos/RS-eco/bavDC/zipball/main"
-utils::download.file(source_url, destfile = tmp_zip, method = "wget")
+source_url <- "https://api.github.com/repos/RS-eco/sdc/zipball/main"
+utils::download.file(source_url, destfile=tmp_zip, method="wget")
 file.exists(tmp_zip)
 
 remotes::install_local(tmp_zip)
@@ -33,6 +37,15 @@ library(sdc)
 
 **If you encounter a bug or if you have any problems, please file an
 [issue](https://github.com/RS-eco/sdc/issues) on Github.**
+
+## Shiny app
+
+You can start the sdc Shiny app, by:
+
+``` r
+library(shiny)
+runApp()
+```
 
 ## Datasets
 
@@ -96,3 +109,14 @@ load(system.file("extdata", "srtm3_che_1arc.rda", package = "sdc"))
 **Note:** Please also have a look at the corresponding
 [vignette](https://github.com/RS-eco/sdc/blob/main/vignettes/sdc-elevation.Rmd)
 for detailed information about the dataset and the related variables.
+
+### iNaturalist biodiversity data
+
+``` r
+data("inat_che_1965_2025")
+```
+
+**Note:** Please also have a look at the corresponding
+[vignette](https://github.com/RS-eco/sdc/blob/main/vignettes/sdc-sdms.Rmd)
+for a detailed example of using the iNaturalist data and the
+above-mentioned bioclimatic data to produce species distribution models.

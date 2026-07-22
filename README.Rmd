@@ -11,6 +11,10 @@ editor_options:
 knitr::opts_chunk$set(collapse = T, tidy=T, comment = NA, warning=F, message=F)
 ```
 
+<!--
+If you are interested to see what sdc has to offer without diving into R, click [here](https://rs-eco.shinyapps.io/divViz/).
+-->
+
 ## Installation
 
 You can install sdc from github with:
@@ -41,6 +45,15 @@ library(sdc)
 ```
 
 **If you encounter a bug or if you have any problems, please file an [issue](https://github.com/RS-eco/sdc/issues) on Github.**
+
+## Shiny app
+
+You can start the sdc Shiny app, by:
+
+```{r, eval=FALSE}
+library(shiny)
+runApp()
+```
 
 ## Datasets
 
