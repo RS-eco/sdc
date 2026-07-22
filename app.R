@@ -78,11 +78,9 @@ cached_plot <- memoise(make_plot, cache = plot_cache)
 # Define function to load outline
 # ------------------------------------------------------------------------------
 
-outline <- function() {
-  env <- new.env(parent = emptyenv())
-  objs <- load("data/che.rda", envir = env)
-  env[[objs[[1]]]]
-}
+env <- new.env(parent = emptyenv())
+objs <- load("data/che.rda", envir = env)
+outline <- env[[objs[[1]]]]
 
 # ------------------------------------------------------------------------------
 # UI

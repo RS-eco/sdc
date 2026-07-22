@@ -2,8 +2,7 @@ sdc: Swiss Data Cube
 ================
 
 If you are interested to see what sdc has to offer without diving into
-R, click
-[here](https://connect.posit.cloud/rs-eco/content/019f8942-3c8e-2848-531d-dd5742983361).
+R, click [here](https://rs-eco-sdc.share.connect.posit.cloud/).
 
 ## Installation
 
